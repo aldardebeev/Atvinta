@@ -16,7 +16,7 @@ class NoteCreateRequest extends FormRequest
 
     final public const FIELD_EXPIRATION_DATE = 'expiration_date';
 
-    final public const FIELD_ACCESS_RESTRICTION = 'access_restriction';
+    final public const FIELD_ACCESS_TYPE = 'access_type';
 
 
     public function rules(): array
@@ -26,8 +26,10 @@ class NoteCreateRequest extends FormRequest
             self::FIELD_TITLE            => 'string|required|max:255',
             self::FIELD_PASSWORD        => 'string|min:6|max:100|nullable',
             self::FIELD_EXPIRATION_DATE => 'string|nullable',
-            self::FIELD_ACCESS_RESTRICTION => 'string|nullable',
+            self::FIELD_ACCESS_TYPE => 'string|nullable',
+
         ];
+
     }
 
     public function getText(): string
@@ -61,18 +63,18 @@ class NoteCreateRequest extends FormRequest
         return $this->get(self::FIELD_PASSWORD);
     }
 
-    public function getAccessRestriction(): ?string
+    public function getAccessType(): ?string
     {
-        if ($this->get(self::FIELD_ACCESS_RESTRICTION) === null) {
+        if ($this->get(self::FIELD_ACCESS_TYPE) === null) {
             return null;
         }
 
-        if (! is_string($this->get(self::FIELD_ACCESS_RESTRICTION))) {
-            throw new LogicException('Field `access_restriction` not string');
+        if (! is_string($this->get(self::FIELD_ACCESS_TYPE))) {
+            throw new LogicException('Field `access_type` not string');
         }
 
-        return in_array($this->get(self::FIELD_ACCESS_RESTRICTION), ['public', 'unlisted', 'private'])
-            ? $this->get(self::FIELD_ACCESS_RESTRICTION)
+        return in_array($this->get(self::FIELD_ACCESS_TYPE), ['public', 'unlisted', 'private'])
+            ? $this->get(self::FIELD_ACCESS_TYPE)
             : null;
     }
 

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property int         $id
  * @property string      $title
  * @property string      $text
+ * @property string      $access_type
  * @property string      $slug
  * @property string|null $password
  * @property Carbon|null $expiration_date
@@ -19,5 +20,11 @@ class Note extends EloquentModel
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'text', 'slug', 'expiration_date', 'password'];
+    protected $fillable = ['title', 'text', 'slug', 'access_type', 'expiration_date', 'password'];
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'notes_user');
+    }
+
 }

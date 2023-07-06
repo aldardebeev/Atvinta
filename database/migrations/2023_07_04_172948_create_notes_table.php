@@ -17,12 +17,15 @@ class CreateNotesTable extends Migration
             $table->id();
             $table->text('text');
             $table->string('title');
+            $table->string('access_type');
             $table->timestamp('expiration_date')->nullable();
             $table->string('password');
             $table->string('slug')->unique();
             $table->timestamps();
         });
+
     }
+
 
     /**
      * Reverse the migrations.

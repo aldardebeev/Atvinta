@@ -23,7 +23,10 @@
             <button type="submit">Sign In</button>
 
         </form>
+
     </div>
+    <div class="text-center">Нет аккаунта?<a href="/signup">Зарегистрироваться</a></div>
+    <a href="{{route('vk')}}">Вход через VK</a>
     </body>
 
 

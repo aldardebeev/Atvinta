@@ -4,25 +4,27 @@
 
 @section('content')
     <div class="container">
-        <h1>Sign up</h1>
+        <h1>Регистрация</h1>
         <form action="" method="POST">
             @csrf
 
             <label>
-                <input type="text" name="name" placeholder="Name" required />
+                <input type="text" name="name" placeholder="Имя" required />
             </label>
-
-            <label>
-                <input type="password" name="password" placeholder="Password" required />
-            </label>
-
             <label>
                 <input type="email" name="email" placeholder="Email" required />
             </label>
+            <label>
+                <input type="password" name="password" placeholder="Пароль" required />
+            </label>
+
+
 
             <button type="submit" >Sign Up</button>
         </form>
-        <div class="text-center">Already have an account? <a href="/signin">Login here</a></div>
+
     </div>
+    <div class="text-center">Есть аккаунт? <a href="/signin">Войти</a></div>
+    <a href="{{route('vk')}}">Вход через VK</a>
 @endsection
 

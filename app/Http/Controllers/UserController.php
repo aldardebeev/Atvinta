@@ -38,10 +38,6 @@ class UserController extends Controller
 
     }
 
-    public function showSignIn()
-    {
-        return view('signin');
-    }
 
     public function signin(Request $request)
     {
@@ -59,5 +55,7 @@ class UserController extends Controller
             'email' => 'Не удалось авторизоваться',
         ]);
     }
+
+
 
 }

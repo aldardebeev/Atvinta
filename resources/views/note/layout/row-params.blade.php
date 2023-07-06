@@ -16,13 +16,13 @@
     </div>
     <div class="col-4">
         <div class="form-floating">
-            <select class="form-select" name="access_restriction" id="access_restriction"
+            <select class="form-select" name="access_type" id="access_type"
                     aria-label="select example">
                 <option value="public">Всем</option>
                 <option value="unlisted">Только по ссылке</option>
                 <option value="private">Только вам</option>
             </select>
-            <label for="expiration_date">Доступен</label>
+            <label for="access_type">Доступен</label>
         </div>
     </div>
     <div class="col-4">

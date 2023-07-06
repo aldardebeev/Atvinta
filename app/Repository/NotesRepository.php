@@ -21,11 +21,12 @@ class NotesRepository
     }
 
 
-    public function create(string $text, string $title, ?string $password, ?Carbon $expiration_date): Note
+    public function create(string $text, string $title, string $access_type, ?string $password, ?Carbon $expiration_date): Note
     {
         $note                  = new Note();
         $note->text            = Crypt::encryptString($text);
         $note->title           = $title;
+        $note->access_type     = $access_type;
         $note->expiration_date = $expiration_date;
         $note->password        = $password;
         $note->slug            = time() . '-' . random_int(0, mt_getrandmax());

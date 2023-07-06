@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SocialController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -15,7 +16,8 @@ Route::post('/notes', [NoteController::class, 'createNote'])->name('note.create'
 
 Route::name('user.')->group(function (){
 
-    Route::view('/my-notes', 'myNotes')->name('myNotes');
+    Route::get('/my-notes', [NoteController::class, 'showUserNotes'])->middleware('auth')->name('myNotes');
+
 
     Route::get('/signin', function (){
         if(Auth::check()){
@@ -41,6 +43,8 @@ Route::name('user.')->group(function (){
 
 
 });
+Route::get('/vk/auth', [SocialController::class, 'index'])->name('vk');
+Route::get('/vk/auth/callback', [SocialController::class, 'callback']);
 
 
 

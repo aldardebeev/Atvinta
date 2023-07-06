@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\NoteCreateRequest;
 use App\Models\Note;
+use App\Models\User;
 use App\Repository\NotesRepository;
 use Carbon\Carbon;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 
@@ -18,8 +20,25 @@ class NoteController extends Controller
 
     public function index(): View|ViewFactory
     {
-        return view('home', [
+        $data = Note::latest()->get();
+        $notes = [];
 
+        foreach ($data as $note) {
+            if ($note->access_type === 'public') {
+                $slug = $note->slug;
+                $decryptedNote = Crypt::decryptString($note->text);
+                $notes[] = [
+                    'slug' => $slug,
+                    'title' => $note->title,
+                    'text' => $decryptedNote
+                ];
+            }
+        }
+
+        $notes = array_slice($notes, 0, 10);
+
+        return view('home', [
+            'notes' => $notes
         ]);
     }
 
@@ -45,26 +64,48 @@ class NoteController extends Controller
         ]);
     }
 
+
     public function createNote(NoteCreateRequest $request, NotesRepository $notes_repository): Application|View|ViewFactory
     {
         $note = $notes_repository->create(
             $request->getText(),
             $request->getTitle(),
+            $this->getAccessType($request->getAccessType()),
             $request->getPassword() ? Hash::make($request->getPassword()) : null,
             $this->getExpirationDate($request->getExpirationDate())
         );
 
-        return view('note.show-link', [
-            'hide_footer' => true,
-            'note_url'    => route('note.decrypt', ['slug' => $note->slug]),
-        ]);
+        $user = Auth::user();
+        if($user){
+            $user->notes()->attach($note);
+            if ($note->access_type === 'unlisted'){
+                return view('note.show-link', [
+                    'hide_footer' => true,
+                    'note_url'    => route('note.decrypt', ['slug' => $note->slug]),
+                ]);
+            }
+            else{
+                return $this->showUserNotes();
+            }
+        }
+        else {
+            if ($note->access_type === 'unlisted'){
+                return view('note.show-link', [
+                    'hide_footer' => true,
+                    'note_url'    => route('note.decrypt', ['slug' => $note->slug]),
+                ]);
+            }
+            elseif ($note->access_type === 'private'){
+                return view('signup');
+            }
+            else{
+                return $this->index();
+            }
+        }
     }
 
-    public function decrypt(
-        string $slug,
-        NotesRepository $notes_repository
-    ): ViewFactory|View|Application|RedirectResponse {
-
+    public function decrypt(string $slug, NotesRepository $notes_repository): ViewFactory|View|Application|RedirectResponse
+    {
 
         request()->validate([
             'decrypt_password' => 'string|max:100',
@@ -79,9 +120,9 @@ class NoteController extends Controller
             return back()->withErrors(['bad_password' => 'Password incorrect']);
         }
 
-        $note_text = Crypt::decryptString($note->text);
 
-//        $note->delete(); удаление заметки
+
+        $note_text = Crypt::decryptString($note->text);
 
         $note_title = $note->title;
 
@@ -89,6 +130,37 @@ class NoteController extends Controller
             'hide_footer' => true,
             'note_text'   => $note_text,
             'note_title'  => $note_title
+        ]);
+    }
+
+
+    public function showUserNotes()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return route('signup');
+        }
+
+        $notes = $user->notes()->latest()->take(10)->get();
+        $noteTitle = $notes->pluck('title')->reverse();
+        $notesAccess = $notes->pluck('access_type')->reverse();
+        $slug = $notes->pluck('slug')->reverse();
+        $notesText = [];
+
+        foreach ($notes as $note) {
+            $decryptedNote = Crypt::decryptString($note->text);
+            $notesText[] = $decryptedNote;
+        }
+
+        $name = $user->name;
+
+
+        return view('myNotes', [
+            'slug' => $slug,
+            'title' => $noteTitle,
+            'name' => $name,
+            'notes' => $notesText,
+            'access_type' => $notesAccess
         ]);
     }
 
@@ -107,17 +179,21 @@ class NoteController extends Controller
             '1_month' => Carbon::now()->addMonth(),
             default   => null,
         };
-    } private function getAccessRestriction(?string $Access_date_value): ?Carbon
+    }
+
+    private function getAccessType(?string $Access_date_value)
     {
         if (! $Access_date_value) {
             return null;
         }
 
         return match ($Access_date_value) {
-            'public'  => Carbon::now()->addMinutes(10),
-            'unlisted'  => Carbon::now()->addHour(),
-            'private'  => Carbon::now()->subHours( 3),
-            default   => null,
+            'public'    => 'public',
+            'unlisted'  => 'unlisted',
+            'private'   => 'private',
+            default     => null,
         };
+
+
     }
 }
