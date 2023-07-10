@@ -18,38 +18,26 @@ class NoteController
 {
     public function index()
     {
-        $data = Note::latest()->get();
-        $notes = [];
+        $currentDateTime = Carbon::now();
 
-        foreach ($data as $note) {
-            if ($note->access_type === 'public') {
+        $notes = Note::where('access_type', 'public')
+            ->where(function ($query) use ($currentDateTime) {
+                $query->where('expiration_date', '>=', $currentDateTime)
+                    ->orWhereNull('expiration_date');
+            })
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->with('users')
+            ->get();
 
-                $slug = $note->slug;
-                $text_type = $note->text_type;
+        $notes = $notes->map(function ($note) {
+            $words = explode(' ', $note->text);
+            $shortText = implode(' ', array_slice($words, 0, 15));
 
-
-
-                $words = explode(' ', $note->text);
-                $shortText = implode(' ', array_slice($words, 0, 15));
-
-                $noteData = [
-                    'slug' => $slug,
-                    'title' => $note->title,
-                    'text' => $shortText,
-                    'text_type' => $text_type,
-
-                ];
-
-                $user = $note->users()->first();
-                if ($user) {
-                    $noteData['user_name'] = $user->name;
-                }
-
-                $notes[] = $noteData;
-            }
-        }
-
-        $notes = array_slice($notes, 0, 10);
+            $note->text = $shortText;
+            $note->user_name = $note->users->first() ? $note->users->first()->name : null;
+            return $note;
+        });
 
         return response()->json( [
             'notes' => $notes,
@@ -62,8 +50,11 @@ class NoteController
         if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-
-        $notes = $user->notes()->latest()->take(10)->get();
+        $currentDateTime = Carbon::now();
+        $notes = $user->notes()->latest()->take(10)->where(function ($query) use ($currentDateTime) {
+            $query->where('expiration_date', '>=', $currentDateTime)
+                ->orWhereNull('expiration_date');  })
+            ->get();
         $name = $user->name;
 
         return response()->json([
@@ -77,11 +68,11 @@ class NoteController
         $note = $notes_repository->create(
             $request->getText(),
             $request->getTitle(),
-            $this->getAccessType($request->getAccessType()),
-            $this->getTextType($request->getTextType()),
-            $request->getPassword() ? Hash::make($request->getPassword()) : null,
+            $request->getAccessType(),
+            $request->getTextType(),
             $this->getExpirationDate($request->getExpirationDate())
         );
+
 
         $user = Auth::user();
         if ($user) {

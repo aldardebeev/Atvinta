@@ -62,7 +62,6 @@ class NoteController extends Controller
 
         if ($note->access_type === 'unlisted') {
             return view('note.show-link', [
-                'hide_footer' => true,
                 'note_url' => route('note.decrypt', ['slug' => $note->slug]),
             ]);
         } elseif ($user) {
@@ -126,7 +125,7 @@ class NoteController extends Controller
         }
 
         return match ($expiration_date_value) {
-            '10_min'  => Carbon::now()->addMinutes(1),
+            '10_min'  => Carbon::now()->addMinutes(10),
             '1_hour'  => Carbon::now()->addHour(),
             '3_hour'  => Carbon::now()->subHours( 3),
             '1_day'   => Carbon::now()->addDay(),

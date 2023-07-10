@@ -1,66 +1,69 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<h1 align="center">Сервис выбора места для отдыха</h1>
+  <p> Этот проект реализован с помощью PHP 8.2, фреймворка Laravel, СУБД PostgreSql.
+ <h2>Описание:</h2>
+  <p> Сервис Pastebin - Он позволяет заливать куски текста/кода и получать на них
+короткую ссылку, которую можно отправить другим людям. Загружать данные
+можно как анонимно, так и зарегистрировавшись.</p>
+<h2>Функционал сервиса:</h2>
+<ul>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+- Авторизация/регистрация пользователя:
+  - по логину паролю
+  - с помощью ВКонтакте
+- Можно указать ограничение доступа
+  - public - доступна всем, видна в списках
+  - unlisted - доступна только по ссылке
+  - private -- доступна только отправившему
+- можно выбрать срок в течение которого "паста" будет доступна по ссылке
+  - 10мин, 1час, 3часа, 1день, 1неделя, 1месяц, без ограничения
+  - после окончания срока получить доступ к "пасте" нельзя
+- для "пасты" можно выбрать язык, тогда при выводе синтаксис выбранного
+  языка должен подсвечиваться
+- для загруженной пасты выдается короткая ссылка вида http://my-awesomepastebin.tld/{какой-то-рандомный-хэш}, например, http://my-awesomepastebin.tld/ab12cd34
+- Возможность просмотра
+  - по ссылке
+  - на всех страницах блок с последними 10 public пастами
+  - на всех страницах залогиненный пользователь видит доп. блок с
+    последними 10 своими пастами
+  - зарегистрированный пользователь имеет отдельную страницу, где видит
+    список всех своих паст. Все пасты, у которых вышел срок доступности, не видны никому, в том
+    числе и автору
+- Возможность пользователю пожаловаться на пасту
+- Администрирование
+    - админка Orchid
+    - возможность просмотра списка пользователей, паст и жалоб
+    - возможность бана пользователя и удаления паст
+- API для сторонних приложений
+</ul>
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<ul>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+</ul>
+    <h2>Примеры:</h2>
+<ul>
 
-## Learning Laravel
+![My photo1] (./example/1.png)
+![My photo2] (./example/2.png)
+![My photo3] (./example/3.png)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+</ul>
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+<h2>Чтобы запустить проект, выполните:</h2>
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. Создайте контейнеры:
 
-## Laravel Sponsors
+```docker compose build```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+2. Запустите их:
 
-### Premium Partners
+```docker compose up -d```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
 
-## Contributing
+3. Создайте таблицы:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```docker compose exec app php artisan migrate```
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+5. Для создания пользователя с максимальными правами
+   ```docker compose exec app php artisan orchid:admin admin admin@admin.com password```
