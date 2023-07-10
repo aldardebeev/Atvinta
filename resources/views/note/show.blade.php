@@ -3,49 +3,66 @@
 @section('title', 'Secret note read and destroyed!')
 
 @section('content')
-
-    <div class="container">
-        <div class="row mt-2 mb-4">
-            <div class="col-md-8 mx-auto">
-                <h3 class="mt-5">Содержание заметки</h3>
-
-
-                <h3 class="mt-5">{{ $note_title }}</h3>
-                <div class="mb-3">
-                    <textarea class="form-control" id="note-text" rows="8">{{ $note_text }}</textarea>
-                </div>
-
-                <div class="mb-3">
-                    <div class="d-grid">
-                        <button id="copy-button" type="button" class="btn btn-outline-secondary">
-                            Скопировать заметку
-                        </button>
+    @if (session('success'))
+        <div class="container">
+            <div class="row mt-2 mb-4">
+                <div class="col-md-12 mx-auto">
+                    <div class="alert alert-success" role="alert">
+                        {{ session('success') }}
                     </div>
                 </div>
+            </div>
+        </div>
+    @endif
+    <div class="container">
+        <div class="row mt-2 mb-4">
+            <div class="col-md-12 mx-auto">
+                <h3 class="mt-5">Содержание пасты - {{ $note_title }}</h3>
+
+                @if ($text_type === 'text')
+                    <div class="card-text" style="word-wrap: break-word;">
+                        {{ $note_text }}
+                    </div>
+                @elseif ($text_type === 'php')
+                    <pre><code class="language-php">{{ $note_text }}</code></pre>
+                @elseif ($text_type === 'html')
+                    <pre><code class="language-html">{{ $note_text }}</code></pre>
+                @endif
 
             </div>
         </div>
     </div>
+
+{{--    @if (Auth::check())--}}
+        <!-- Отображение формы комментария -->
+
+        <div class="container">
+
+            <div class="row">
+                <div class="col-md-6 mx-auto">
+                    <h4>Оставить жалобу</h4>
+                    <form action="/note/comment/{{ $id }}" method="POST">
+                        @csrf
+                        <div class="form-group">
+                            <textarea class="form-control" name="text" rows="3" placeholder="Введите ваш комментарий"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Отправить</button>
+                    </form>
+                </div>
+            </div>
+
+            @if (!Auth::check())
+                <div class="container">
+                    <div class="row mt-2 mb-4">
+                        <div class="col-md-12 mx-auto">
+                            <div class="alert alert-danger" role="alert">
+                                Нужно <a href="/signin">войти в профиль</a>, чтобы оставить комментарий.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+
 @endsection
-
-@push('scripts')
-    <script>
-        $(document).ready(function () {
-            $('#copy-button').click(function (e) {
-                e.preventDefault();
-
-                var note_text = document.getElementById("note-text");
-                var copy_btn = document.getElementById("copy-button");
-
-
-                note_text.select();
-                note_text.setSelectionRange(0, 99999);
-
-                navigator.clipboard.writeText(note_text.value);
-
-                note_text.classList.add("is-valid");
-                copy_btn.innerText = 'Copied!';
-            });
-        });
-    </script>
-@endpush

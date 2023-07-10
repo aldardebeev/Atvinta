@@ -2,6 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\NoteController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,6 +17,19 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+
+Route::post('/signup', [UserController::class, 'signup']);
+
+
+Route::get('/notes', [NoteController::class, 'index']);
+Route::post('/note/{slug}', [NoteController::class, 'decrypt']);
+Route::post('/note-create', [NoteController::class, 'createNote']);
+
+
+
+
+// routes/api.php
+Route::group(['middleware' => ['auth:web,api']], function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/user-notes', [NoteController::class, 'showUserNotes']);
 });

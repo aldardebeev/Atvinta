@@ -27,21 +27,15 @@
     </div>
     <div class="col-4">
         <div class="form-floating">
-            <input class="form-control"
-                   name="encrypt_password"
-                   id="password_input"
-                   type="password"
-                   placeholder="Password">
-            <label for="password_input">Пароль (необязательно)</label>
-
-            @error('encrypt_password')
-            <div class="py-2 text-red-500">
-                <p class="font-extrabold font-outfit">
-                    {{ $message }}
-                </p>
-            </div>
-            @enderror
+            <select class="form-select" name="text_type" id="text_type"
+                    aria-label="select example">
+                <option value="text">Обычный текст</option>
+                <option value="php">Язык php</option>
+                <option value="html">Язык html</option>
+            </select>
+            <label for="text_type">Какая паста?</label>
         </div>
     </div>
+
 </div>
 

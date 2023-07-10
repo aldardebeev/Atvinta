@@ -20,15 +20,14 @@ class NotesRepository
         return $note instanceof Note ? $note : null;
     }
 
-
-    public function create(string $text, string $title, string $access_type, ?string $password, ?Carbon $expiration_date): Note
+    public function create(string $text, string $title, string $access_type, string $text_type,  ?Carbon $expiration_date): Note
     {
         $note                  = new Note();
-        $note->text            = Crypt::encryptString($text);
+        $note->text            = $text;
         $note->title           = $title;
         $note->access_type     = $access_type;
+        $note->text_type       = $text_type;
         $note->expiration_date = $expiration_date;
-        $note->password        = $password;
         $note->slug            = time() . '-' . random_int(0, mt_getrandmax());
         $note->save();
 

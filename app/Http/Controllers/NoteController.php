@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\NoteCreateRequest;
 use App\Models\Note;
-use App\Models\User;
 use App\Repository\NotesRepository;
 use Carbon\Carbon;
 use Illuminate\Contracts\Foundation\Application;
@@ -12,124 +11,82 @@ use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Hash;
 
 class NoteController extends Controller
 {
-
     public function index(): View|ViewFactory
     {
-        $data = Note::latest()->get();
-        $notes = [];
+        $currentDateTime = Carbon::now();
 
-        foreach ($data as $note) {
-            if ($note->access_type === 'public') {
-                $slug = $note->slug;
-                $decryptedNote = Crypt::decryptString($note->text);
-                $notes[] = [
-                    'slug' => $slug,
-                    'title' => $note->title,
-                    'text' => $decryptedNote
-                ];
-            }
-        }
+        $notes = Note::where('access_type', 'public')
+            ->where(function ($query) use ($currentDateTime) {
+                $query->where('expiration_date', '>=', $currentDateTime)
+                    ->orWhereNull('expiration_date');
+            })
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->with('users')
+            ->get();
 
-        $notes = array_slice($notes, 0, 10);
+        $notes = $notes->map(function ($note) {
+            $words = explode(' ', $note->text);
+            $shortText = implode(' ', array_slice($words, 0, 15));
+
+            $note->text = $shortText;
+            $note->user_name = $note->users->first() ? $note->users->first()->name : null;
+            return $note;
+        });
 
         return view('home', [
-            'notes' => $notes
+            'notes' => $notes,
         ]);
     }
+
 
     public function showCreatePage(): View|ViewFactory
     {
-        return view('note.new', [
-            'hide_footer' => true,
-        ]);
+        return view('note.new');
     }
-
-    public function openLink(string $slug, NotesRepository $notes_repository): View|ViewFactory
-    {
-        $note = $notes_repository->findBySlug($slug);
-
-        if ($note instanceof Note && $note->expiration_date !== null && $note->expiration_date < now()) {
-            $note->delete();
-            $note = null;
-        }
-
-        return view('note.show', [
-            'hide_footer' => true,
-            'note'        => $note,
-        ]);
-    }
-
 
     public function createNote(NoteCreateRequest $request, NotesRepository $notes_repository): Application|View|ViewFactory
     {
         $note = $notes_repository->create(
             $request->getText(),
             $request->getTitle(),
-            $this->getAccessType($request->getAccessType()),
-            $request->getPassword() ? Hash::make($request->getPassword()) : null,
+            $request->getAccessType(),
+            $request->getTextType(),
             $this->getExpirationDate($request->getExpirationDate())
         );
 
         $user = Auth::user();
-        if($user){
+
+        if ($note->access_type === 'unlisted') {
+            return view('note.show-link', [
+                'hide_footer' => true,
+                'note_url' => route('note.decrypt', ['slug' => $note->slug]),
+            ]);
+        } elseif ($user) {
             $user->notes()->attach($note);
-            if ($note->access_type === 'unlisted'){
-                return view('note.show-link', [
-                    'hide_footer' => true,
-                    'note_url'    => route('note.decrypt', ['slug' => $note->slug]),
-                ]);
-            }
-            else{
-                return $this->showUserNotes();
-            }
-        }
-        else {
-            if ($note->access_type === 'unlisted'){
-                return view('note.show-link', [
-                    'hide_footer' => true,
-                    'note_url'    => route('note.decrypt', ['slug' => $note->slug]),
-                ]);
-            }
-            elseif ($note->access_type === 'private'){
-                return view('signup');
-            }
-            else{
-                return $this->index();
-            }
+            return $this->showUserNotes();
+        } elseif ($note->access_type === 'private') {
+            return view('signup');
+        } else {
+            return $this->index();
         }
     }
 
-    public function decrypt(string $slug, NotesRepository $notes_repository): ViewFactory|View|Application|RedirectResponse
+    public function showNote(string $slug, NotesRepository $notes_repository): ViewFactory|View|Application|RedirectResponse
     {
-
-        request()->validate([
-            'decrypt_password' => 'string|max:100',
-        ]);
-
         $note = $notes_repository->findBySlug($slug);
         if (! $note instanceof Note) {
             return back()->withErrors(['404' => 'The note does not exist, has already been read, or has expired']);
         }
 
-        if ($note->password !== null && ! Hash::check(request()->decrypt_password, $note->password)) {
-            return back()->withErrors(['bad_password' => 'Password incorrect']);
-        }
-
-
-
-        $note_text = Crypt::decryptString($note->text);
-
-        $note_title = $note->title;
-
         return view('note.show', [
-            'hide_footer' => true,
-            'note_text'   => $note_text,
-            'note_title'  => $note_title
+            'note_text' => $note->text,
+            'note_title' => $note->title,
+            'text_type' => $note->text_type,
+            'id' => $note->id,
         ]);
     }
 
@@ -140,28 +97,26 @@ class NoteController extends Controller
         if (!$user) {
             return route('signup');
         }
-
-        $notes = $user->notes()->latest()->take(10)->get();
-        $noteTitle = $notes->pluck('title')->reverse();
-        $notesAccess = $notes->pluck('access_type')->reverse();
-        $slug = $notes->pluck('slug')->reverse();
-        $notesText = [];
+        $currentDateTime = Carbon::now();
+        $notes = $user->notes()->latest()->take(10)->where(function ($query) use ($currentDateTime) {
+            $query->where('expiration_date', '>=', $currentDateTime)
+                ->orWhereNull('expiration_date');  })
+            ->get();
+        $notesData = [];
 
         foreach ($notes as $note) {
-            $decryptedNote = Crypt::decryptString($note->text);
-            $notesText[] = $decryptedNote;
+            $words = explode(' ', $note->text);
+            $shortText = implode(' ', array_slice($words, 0, 15));
+
+            $notesData[] = [
+                'slug' => $note->slug,
+                'title' => $note->title,
+                'noteText' => $shortText,
+                'access_type' => $note->access_type,
+                'text_type' => $note->text_type
+            ];
         }
-
-        $name = $user->name;
-
-
-        return view('myNotes', [
-            'slug' => $slug,
-            'title' => $noteTitle,
-            'name' => $name,
-            'notes' => $notesText,
-            'access_type' => $notesAccess
-        ]);
+        return view('myNotes', compact('notesData'));
     }
 
     private function getExpirationDate(?string $expiration_date_value): ?Carbon
@@ -171,7 +126,7 @@ class NoteController extends Controller
         }
 
         return match ($expiration_date_value) {
-            '10_min'  => Carbon::now()->addMinutes(10),
+            '10_min'  => Carbon::now()->addMinutes(1),
             '1_hour'  => Carbon::now()->addHour(),
             '3_hour'  => Carbon::now()->subHours( 3),
             '1_day'   => Carbon::now()->addDay(),
@@ -181,19 +136,6 @@ class NoteController extends Controller
         };
     }
 
-    private function getAccessType(?string $Access_date_value)
-    {
-        if (! $Access_date_value) {
-            return null;
-        }
-
-        return match ($Access_date_value) {
-            'public'    => 'public',
-            'unlisted'  => 'unlisted',
-            'private'   => 'private',
-            default     => null,
-        };
 
 
-    }
 }

@@ -13,6 +13,6 @@ class Notes_user extends Model
 
     protected $fillable = [
         'user_id',
-        'notes_id'
+        'note_id'
     ];
 }

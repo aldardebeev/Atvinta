@@ -18,8 +18,8 @@ class CreateNotesTable extends Migration
             $table->text('text');
             $table->string('title');
             $table->string('access_type');
+            $table->string('text_type');
             $table->timestamp('expiration_date')->nullable();
-            $table->string('password');
             $table->string('slug')->unique();
             $table->timestamps();
         });

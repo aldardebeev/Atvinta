@@ -12,11 +12,12 @@ class NoteCreateRequest extends FormRequest
     final public const FIELD_TEXT = 'text';
     final public const FIELD_TITLE = 'title';
 
-    final public const FIELD_PASSWORD = 'encrypt_password';
-
     final public const FIELD_EXPIRATION_DATE = 'expiration_date';
 
     final public const FIELD_ACCESS_TYPE = 'access_type';
+
+    final public const FIELD_TEXT_TYPE = 'text_type';
+
 
 
     public function rules(): array
@@ -24,10 +25,9 @@ class NoteCreateRequest extends FormRequest
         return [
             self::FIELD_TEXT            => 'string|required|max:20000',
             self::FIELD_TITLE            => 'string|required|max:255',
-            self::FIELD_PASSWORD        => 'string|min:6|max:100|nullable',
             self::FIELD_EXPIRATION_DATE => 'string|nullable',
             self::FIELD_ACCESS_TYPE => 'string|nullable',
-
+            self::FIELD_TEXT_TYPE => 'string',
         ];
 
     }
@@ -41,6 +41,7 @@ class NoteCreateRequest extends FormRequest
         return $this->get(self::FIELD_TEXT);
     }
 
+
     public function getTitle(): string
     {
         if (! is_string($this->get(self::FIELD_TITLE))) {
@@ -50,18 +51,6 @@ class NoteCreateRequest extends FormRequest
         return $this->get(self::FIELD_TITLE);
     }
 
-    public function getPassword(): ?string
-    {
-        if ($this->get(self::FIELD_PASSWORD) === null) {
-            return null;
-        }
-
-        if (! is_string($this->get(self::FIELD_PASSWORD))) {
-            throw new LogicException('Field `password` not string');
-        }
-
-        return $this->get(self::FIELD_PASSWORD);
-    }
 
     public function getAccessType(): ?string
     {
@@ -78,6 +67,20 @@ class NoteCreateRequest extends FormRequest
             : null;
     }
 
+
+
+    public function getTextType(): ?string
+    {
+        if (! is_string($this->get(self::FIELD_TEXT_TYPE))) {
+
+            throw new LogicException('Field `text_type` not string');
+        }
+
+        return in_array($this->get(self::FIELD_TEXT_TYPE), ['text', 'php', 'html'])
+            ? $this->get(self::FIELD_TEXT_TYPE)
+            : null;
+    }
+
     public function getExpirationDate(): ?string
     {
         if ($this->get(self::FIELD_EXPIRATION_DATE) === null) {
@@ -88,7 +91,7 @@ class NoteCreateRequest extends FormRequest
             throw new LogicException('Field `expiration_date` not string');
         }
 
-        return in_array($this->get(self::FIELD_EXPIRATION_DATE), ['1_hour', '1_day', '1_week', '1_month'])
+        return in_array($this->get(self::FIELD_EXPIRATION_DATE), ['10_min','1_hour','3_hour', '1_day', '1_week', '1_month'])
             ? $this->get(self::FIELD_EXPIRATION_DATE)
             : null;
     }
