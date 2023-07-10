@@ -37,10 +37,10 @@
 </ul>
 
 
-    <h2>Примеры:</h2>
-<img src="https://github.com/aldardebeev/Atvinta/example/1.png" alt="Screenshot">
-<img src="https://github.com/aldardebeev/Atvinta/example/2.png" alt="Screenshot">
-<img src="https://github.com/aldardebeev/Atvinta/example/3.png" alt="Screenshot">
+<h2>Примеры:</h2>
+<img src="https://github.com/aldardebeev/Atvinta/blob/master/example/1.png" alt="Screenshot">
+<img src="https://github.com/aldardebeev/Atvinta/blob/master/example/2.png" alt="Screenshot">
+<img src="https://github.com/aldardebeev/Atvinta/blob/master/example/3.png" alt="Screenshot">
 
 
 
