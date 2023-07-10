@@ -6,15 +6,22 @@ use App\Models\Comment;
 use App\Models\Note;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
 
 class CommentController extends Controller
 {
-    public function create(Request $request, $id)
+    /**
+     * Create a new comment.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function create(Request $request, $id): RedirectResponse
     {
-        if(!Auth::user()){
+        if (!Auth::user()) {
             return redirect()->back()->with('error', 'Нужно войти в профиль');
-        }
-        else{
+        } else {
             $validatedData = $request->validate([
                 'text' => 'required',
             ]);
@@ -27,6 +34,5 @@ class CommentController extends Controller
 
             return redirect()->back()->with('success', 'Жалоба отправлена');
         }
-
     }
 }

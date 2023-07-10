@@ -6,6 +6,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-10 offset-md-1">
+
                 @foreach ($notes as $note)
                     <div class="card mb-3">
                         <div class="card-body">

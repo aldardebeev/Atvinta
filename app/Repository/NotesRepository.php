@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Models\Note;
+use App\Models\User;
 use Carbon\Carbon;
 use Hashids\Hashids;
 use Illuminate\Support\Facades\Crypt;
@@ -37,5 +38,18 @@ class NotesRepository
         $note->save();
 
         return $note;
+    }
+    public function getUserNotes(User $user, int $limit)
+    {
+        $currentDateTime = Carbon::now();
+
+        return $user->notes()
+            ->latest()
+            ->take($limit)
+            ->where(function ($query) use ($currentDateTime) {
+                $query->where('expiration_date', '>=', $currentDateTime)
+                    ->orWhereNull('expiration_date');
+            })
+            ->get();
     }
 }

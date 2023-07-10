@@ -1,10 +1,10 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Http\Requests\NoteCreateRequest;
 use App\Models\Note;
 use App\Repository\NotesRepository;
+use App\Service\NoteService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory as ViewFactory;
@@ -14,40 +14,39 @@ use Illuminate\Support\Facades\Auth;
 
 class NoteController extends Controller
 {
+    private $noteService;
+
+    public function __construct(NoteService $noteService)
+    {
+        $this->noteService = $noteService;
+    }
+
     public function index(): View|ViewFactory
     {
-        $currentDateTime = Carbon::now();
-
-        $notes = Note::where('access_type', 'public')
-            ->where(function ($query) use ($currentDateTime) {
-                $query->where('expiration_date', '>=', $currentDateTime)
-                    ->orWhereNull('expiration_date');
-            })
-            ->orderByDesc('created_at')
-            ->take(10)
-            ->with('users')
-            ->get();
-
-        $notes = $notes->map(function ($note) {
-            $words = explode(' ', $note->text);
-            $shortText = implode(' ', array_slice($words, 0, 15));
-
-            $note->text = $shortText;
-            $note->user_name = $note->users->first() ? $note->users->first()->name : null;
-            return $note;
-        });
+        $notes = $this->noteService->getPublicNotesWithUsers(10);
 
         return view('home', [
             'notes' => $notes,
         ]);
     }
 
-
+    /**
+     * Show the create note page.
+     *
+     * @return \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory
+     */
     public function showCreatePage(): View|ViewFactory
     {
         return view('note.new');
     }
 
+    /**
+     * Create a new note.
+     *
+     * @param  \App\Http\Requests\NoteCreateRequest  $request
+     * @param  \App\Repository\NotesRepository  $notes_repository
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory
+     */
     public function createNote(NoteCreateRequest $request, NotesRepository $notes_repository): Application|View|ViewFactory
     {
         $note = $notes_repository->create(
@@ -55,7 +54,7 @@ class NoteController extends Controller
             $request->getTitle(),
             $request->getAccessType(),
             $request->getTextType(),
-            $this->getExpirationDate($request->getExpirationDate())
+            $this->noteService->getExpirationDate($request->getExpirationDate())
         );
 
         $user = Auth::user();
@@ -74,6 +73,13 @@ class NoteController extends Controller
         }
     }
 
+    /**
+     * Show a specific note.
+     *
+     * @param  string  $slug
+     * @param  \App\Repository\NotesRepository  $notes_repository
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse
+     */
     public function showNote(string $slug, NotesRepository $notes_repository): ViewFactory|View|Application|RedirectResponse
     {
         $note = $notes_repository->findBySlug($slug);
@@ -89,52 +95,27 @@ class NoteController extends Controller
         ]);
     }
 
-
+    /**
+     * Show the notes of the currently authenticated user.
+     *
+     * @return \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse
+     */
     public function showUserNotes()
     {
-        $user = Auth::user();
-        if (!$user) {
-            return route('signup');
-        }
-        $currentDateTime = Carbon::now();
-        $notes = $user->notes()->latest()->take(10)->where(function ($query) use ($currentDateTime) {
-            $query->where('expiration_date', '>=', $currentDateTime)
-                ->orWhereNull('expiration_date');  })
-            ->get();
-        $notesData = [];
+        $notesData = $this->noteService->getUserNotes(10);
 
-        foreach ($notes as $note) {
-            $words = explode(' ', $note->text);
-            $shortText = implode(' ', array_slice($words, 0, 15));
-
-            $notesData[] = [
-                'slug' => $note->slug,
-                'title' => $note->title,
-                'noteText' => $shortText,
-                'access_type' => $note->access_type,
-                'text_type' => $note->text_type
-            ];
+        if (!$notesData) {
+            return redirect()->route('signup');
         }
+
         return view('myNotes', compact('notesData'));
     }
 
-    private function getExpirationDate(?string $expiration_date_value): ?Carbon
-    {
-        if (! $expiration_date_value) {
-            return null;
-        }
-
-        return match ($expiration_date_value) {
-            '10_min'  => Carbon::now()->addMinutes(10),
-            '1_hour'  => Carbon::now()->addHour(),
-            '3_hour'  => Carbon::now()->subHours( 3),
-            '1_day'   => Carbon::now()->addDay(),
-            '1_week'  => Carbon::now()->addWeek(),
-            '1_month' => Carbon::now()->addMonth(),
-            default   => null,
-        };
-    }
-
-
+    /**
+     * Get the expiration date based on the given value.
+     *
+     * @param  string|null  $expiration_date_value
+     * @return \Carbon\Carbon|null
+     */
 
 }
