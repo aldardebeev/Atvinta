@@ -1,4 +1,4 @@
-<h1 align="center">Сервис выбора места для отдыха</h1>
+<h1 align="center">Pastebin</h1>
   <p> Этот проект реализован с помощью PHP 8.2, фреймворка Laravel, СУБД PostgreSql.
  <h2>Описание:</h2>
   <p> Сервис Pastebin - Он позволяет заливать куски текста/кода и получать на них
@@ -37,18 +37,11 @@
 </ul>
 
 
-<ul>
-
-
-</ul>
     <h2>Примеры:</h2>
-<ul>
+<img src="./example/1.png" alt="Screenshot">
+<img src="./example/2.png" alt="Screenshot">
+<img src="./example/3.png" alt="Screenshot">
 
-![My photo1] (./example/1.png)
-![My photo2] (./example/2.png)
-![My photo3] (./example/3.png)
-
-</ul>
 
 <h2>Чтобы запустить проект, выполните:</h2>
 
@@ -65,5 +58,6 @@
 
 ```docker compose exec app php artisan migrate```
 
-5. Для создания пользователя с максимальными правами
-   ```docker compose exec app php artisan orchid:admin admin admin@admin.com password```
+5. Для создания пользователя с максимальными правами:
+
+```docker compose exec app php artisan orchid:admin admin admin@admin.com password```
