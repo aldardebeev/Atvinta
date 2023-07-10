@@ -61,7 +61,7 @@ class NoteController extends Controller
 
         if ($note->access_type === 'unlisted') {
             return view('note.show-link', [
-                'note_url' => route('note.decrypt', ['slug' => $note->slug]),
+                'note_url' => route('show.note', ['slug' => $note->slug]),
             ]);
         } elseif ($user) {
             $user->notes()->attach($note);
@@ -72,6 +72,8 @@ class NoteController extends Controller
             return $this->index();
         }
     }
+
+
 
     /**
      * Show a specific note.

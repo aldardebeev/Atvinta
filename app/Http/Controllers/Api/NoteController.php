@@ -16,6 +16,7 @@ use Rector\Enum\JsonConstant;
 
 class NoteController
 {
+    private $noteService;
     public function index()
     {
         $currentDateTime = Carbon::now();
@@ -87,7 +88,7 @@ class NoteController
         } else {
             if ($note->access_type === 'unlisted') {
                 return response()->json([
-                    'note_url' => route('note.decrypt', ['slug' => $note->slug])
+                    'note_url' => route('show.note', ['slug' => $note->slug])
                 ]);
             } elseif ($note->access_type === 'private') {
                 return response()->json(['error' => 'User authentication required'], 401);
@@ -97,19 +98,12 @@ class NoteController
         }
     }
 
-    public function decrypt(string $slug, NotesRepository $notes_repository)
+    public function showNote(string $slug, NotesRepository $notes_repository)
     {
-        $requestData = request()->validate([
-            'decrypt_password' => 'string|max:100',
-        ]);
 
         $note = $notes_repository->findBySlug($slug);
         if (! $note instanceof Note) {
             return response()->json(['error' => 'The note does not exist, has already been read, or has expired'], 404);
-        }
-
-        if ($note->password !== null && ! Hash::check($requestData['decrypt_password'], $note->password)) {
-            return response()->json(['error' => 'Password incorrect'], 403);
         }
 
         $note_title = $note->title;

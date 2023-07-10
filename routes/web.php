@@ -40,7 +40,7 @@ Route::post('/notes', [NoteController::class,'createNote'])->name('note.create')
 Route::get('/my-notes', [NoteController::class,'showUserNotes'])->middleware('auth')->name('myNotes');
 
 
-
+Route::post('/note/{slug}', [NoteController::class, 'decrypt'])->name('note.showNote');
 
 
 

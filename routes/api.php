@@ -25,11 +25,11 @@ Route::get('/notes', [NoteController::class, 'index']);
 Route::post('/note/{slug}', [NoteController::class, 'decrypt']);
 Route::post('/note-create', [NoteController::class, 'createNote']);
 
-
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/user-notes', [NoteController::class, 'showUserNotes']);
 
 
 // routes/api.php
 Route::group(['middleware' => ['auth:web,api']], function () {
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/user-notes', [NoteController::class, 'showUserNotes']);
+
 });
